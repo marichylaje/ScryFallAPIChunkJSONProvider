@@ -1,31 +1,33 @@
-name: Reducir bulk de Scryfall
+name: Update Scryfall JSON
 
 on:
-  workflow_dispatch: # lo ejecutas manualmente
   schedule:
-    - cron: '0 0 */2 * *' # cada 2 días a medianoche UTC
+    - cron: '0 6 * * *'
+  workflow_dispatch:
 
 jobs:
-  reduce:
+  update:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Clonar el repositorio
-        uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-      - name: Instalar Node.js
-        uses: actions/setup-node@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '20'
 
-      - name: Instalar dependencias
+      - name: Install dependencies
         run: npm install
 
-      - name: Ejecutar script de reducción
-        run: node scryfallReducer.js
+      - name: Run reducer script
+        run: node srcyfallReducer.js
 
-      - name: Subir archivo reducido como artefacto
-        uses: actions/upload-artifact@v3
-        with:
-          name: scryfall-reduced
-          path: scryfall-reduced.json
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add scryfall-reduced.json last_updated.json
+          git diff --cached --quiet || git commit -m "🔄 Update scryfall-reduced.json"
+          git push
